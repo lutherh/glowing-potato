@@ -76,7 +76,7 @@ public static class Mouse;
 
         static void AntiLogoff()
         {
-            var monitoringDuration = 5; // 500 seconds
+            var monitoringDuration = 2; // 500 seconds
             var minDelayLoop = 1;
             var maxDelayLoop = 30;
 
@@ -243,6 +243,12 @@ public static class Mouse;
             keybd_event(key, MapVirtualKey(key, 0), KEYEVENTF_EXTENDEDKEY, 0);
             Thread.Sleep(duration);
             keybd_event(key, MapVirtualKey(key, 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+            PressKey("W"); // Press W
+        }
+
+        private static void PressKey(string key)
+        {
+            SendKeys.SendWait(key);
         }
 
         [DllImport("user32.dll", SetLastError = true)]
