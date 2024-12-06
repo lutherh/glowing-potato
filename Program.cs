@@ -76,7 +76,7 @@ public static class Mouse;
 
         static void AntiLogoff()
         {
-            var monitoringDuration = 500; // 500 seconds
+            var monitoringDuration = 5; // 500 seconds
             var minDelayLoop = 1;
             var maxDelayLoop = 30;
 
@@ -200,8 +200,9 @@ public static class Mouse;
                     Thread.Sleep(300 + randomDelay);
                     if (!disableSounds) Console.Beep(659, 250);
                     HoldKey(0x7B, 100); // Press F12
+                    Console.WriteLine("Pressed F12 in SC");
                     Thread.Sleep(400 + randomDelay / 2);
-                    HoldKey(0x57, 100); // Press W
+                    HoldKey(0x57, 10000); // Press W
                     Thread.Sleep(400 + randomDelay / 2);
                     HoldKey(0x7B, 100); // Press F12
                     if (!disableSounds) Console.Beep(587, 250);
@@ -249,5 +250,8 @@ public static class Mouse;
 
         [DllImport("user32.dll")]
         private static extern byte MapVirtualKey(uint uCode, uint uMapType);
+        
     }
+
+    
 }
