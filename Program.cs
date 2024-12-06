@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Input;
+
 namespace AntiLogoffConsoleApp
 {
     class Program
@@ -61,6 +63,7 @@ namespace AntiLogoffConsoleApp
             }
         }
 
+public static class Mouse;
         static void CreateNamedPipeServer()
         {
             // Implement named pipe server logic here
@@ -91,7 +94,10 @@ namespace AntiLogoffConsoleApp
                 var endTime = DateTime.Now.AddSeconds(monitoringDuration + new Random().Next(minDelayLoop, maxDelayLoop));
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - total cycle duration: {monitoringDuration + new Random().Next(minDelayLoop, maxDelayLoop)} secs (randomized)");
 
-                var lastMousePosition = Cursor.Position;
+                
+
+
+                var lastMousePosition = Mouse.Equals;
                 bool activityDetected = false;
 
                 while (DateTime.Now < endTime)
@@ -133,10 +139,11 @@ namespace AntiLogoffConsoleApp
 
                     // Check for mouse movement
                     var currentMousePosition = Cursor.Position;
-                    if (currentMousePosition != lastMousePosition)
+                    
+                    if (currentMousePosition.Equals(lastMousePosition)) //if (currentMousePosition != lastMousePosition)
                     {
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - Mouse movement detected!");
-                        lastMousePosition = currentMousePosition;
+                        //lastMousePosition = currentMousePosition;
                         keystroke = "Mouse";
                         activityDetected = true;
                     }
@@ -193,6 +200,8 @@ namespace AntiLogoffConsoleApp
                     Thread.Sleep(300 + randomDelay);
                     if (!disableSounds) Console.Beep(659, 250);
                     HoldKey(0x7B, 100); // Press F12
+                    Thread.Sleep(400 + randomDelay / 2);
+                    HoldKey(0x57, 100); // Press W
                     Thread.Sleep(400 + randomDelay / 2);
                     HoldKey(0x7B, 100); // Press F12
                     if (!disableSounds) Console.Beep(587, 250);
