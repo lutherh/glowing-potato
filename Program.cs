@@ -14,16 +14,14 @@ namespace AntiLogoffConsoleApp
         static bool disableSounds = false;
         static bool disableNotifications = false;
 
+        static String gameName = "Game";
+        public static class Mouse;
+        public enum MouseAction;
+
         static void Main(string[] args)
         {
             // Load settings from config file
             LoadSettings();
-
-            // Create named pipe server
-            CreateNamedPipeServer();
-
-            // Extract icons from DLL
-            ExtractIcons();
 
             // Start AntiLogoff monitoring
             AntiLogoff();
@@ -63,17 +61,6 @@ namespace AntiLogoffConsoleApp
             }
         }
 
-public static class Mouse;
-        static void CreateNamedPipeServer()
-        {
-            // Implement named pipe server logic here
-        }
-
-        static void ExtractIcons()
-        {
-            // Implement icon extraction logic here
-        }
-
         static void AntiLogoff()
         {
             var monitoringDuration = 2; // 500 seconds
@@ -85,9 +72,9 @@ public static class Mouse;
             while (true)
             {
                 // Starting Parameters
-                bool? starCitizenRunning = null;
-                bool? starCitizenFocussed = null;
-                Process starCitizenProcess = null;
+                bool? GameIsRunning = null;
+                bool? GameIsFocussed = null;
+                Process GameProcess = null;
                 bool? keystrokesSentToSC = null;
                 string keystroke = null;
 
@@ -102,25 +89,25 @@ public static class Mouse;
 
                 while (DateTime.Now < endTime)
                 {
-                    // Detect if Star Citizen is running
-                    starCitizenProcess = Process.GetProcessesByName("StarCitizen").FirstOrDefault();
-                    if (starCitizenProcess != null)
+                    // Detect if the game is running
+                    GameProcess = Process.GetProcessesByName("Freelancer").FirstOrDefault();
+                    if (GameProcess != null)
                     {
-                        if (starCitizenRunning != true)
+                        if (GameIsRunning != true)
                         {
-                            // Trigger notification only once until StarCitizen window is detected
-                            Console.WriteLine("StarCitizen detected");
+                            // Trigger notification only once until game window is detected
+                            Console.WriteLine("Freelancer detected");
                         }
-                        starCitizenRunning = true;
+                        GameIsRunning = true;
                     }
                     else
                     {
-                        if (starCitizenRunning != false)
+                        if (GameIsRunning != false)
                         {
-                            // Trigger notification only once until StarCitizen window is detected
-                            Console.WriteLine("StarCitizen is not running");
+                            // Trigger notification only once until game window is detected
+                            Console.WriteLine("Freelancer is not running");
                         }
-                        starCitizenRunning = false;
+                        GameIsRunning = false;
                         continue; // Stop loop and start over
                     }
 
@@ -148,14 +135,14 @@ public static class Mouse;
                         activityDetected = true;
                     }
 
-                    // Detect if any keys were pressed and sent to Star Citizen
+                    // Detect if any keys were pressed and sent to The game
                     if (activityDetected)
                     {
                         IntPtr handleForKeystrokes = GetForegroundWindow();
-                        if (starCitizenProcess.MainWindowHandle == handleForKeystrokes)
+                        if (GameProcess.MainWindowHandle == handleForKeystrokes)
                         {
                             keystrokesSentToSC = true;
-                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - Activity detected within StarCitizen");
+                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - Activity detected within Freelancer");
                         }
                         else if (keystrokesSentToSC == null)
                         {
@@ -176,7 +163,7 @@ public static class Mouse;
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - No activity detected within the monitoring period");
                 }
 
-                if (starCitizenRunning == true && keystrokesSentToSC != true)
+                if (GameIsRunning == true && keystrokesSentToSC != true)
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Starting AntiLogoff Procedure");
 
@@ -186,16 +173,16 @@ public static class Mouse;
                         Console.WriteLine("___StartingAntiLogoff___");
                     }
 
-                    // Focus Star Citizen
-                    if (starCitizenFocussed != true)
+                    // Focus on the game
+                    if (GameIsFocussed != true)
                     {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Focusing Star Citizen");
-                        SetForegroundWindow(starCitizenProcess.MainWindowHandle);
-                        ShowWindow(starCitizenProcess.MainWindowHandle, 3);
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Focusing The game");
+                        SetForegroundWindow(GameProcess.MainWindowHandle);
+                        ShowWindow(GameProcess.MainWindowHandle, 3);
                         Thread.Sleep(500);
                     }
 
-                    // Send keystrokes to Star Citizen
+                    // Send keystrokes to the game
                     var randomDelay = new Random().Next(30, 60);
                     Thread.Sleep(300 + randomDelay);
                     if (!disableSounds) Console.Beep(659, 250);
@@ -215,9 +202,9 @@ public static class Mouse;
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Activity detected in the past {monitoringDuration} secs");
                 }
-                if (starCitizenRunning != true)
+                if (GameIsRunning != true)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - StarCitizen is not running");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Freelancer is not running");
                 }
                 keystrokesSentToSC = false;
                 Thread.Sleep(1);
