@@ -63,9 +63,9 @@ namespace AntiLogoffConsoleApp
 
         static void AntiLogoff()
         {
-            var monitoringDuration = 2; // 500 seconds
+            var monitoringDuration = 2;
             var minDelayLoop = 1;
-            var maxDelayLoop = 30;
+            var maxDelayLoop = 10;
 
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Anti-Logoff started with monitoring duration: {monitoringDuration} secs");
 
@@ -75,7 +75,7 @@ namespace AntiLogoffConsoleApp
                 bool? GameIsRunning = null;
                 bool? GameIsFocussed = null;
                 Process GameProcess = null;
-                bool? keystrokesSentToSC = null;
+                bool? keystrokesSentToTheGame = null;
                 string keystroke = null;
 
                 var endTime = DateTime.Now.AddSeconds(monitoringDuration + new Random().Next(minDelayLoop, maxDelayLoop));
@@ -141,12 +141,12 @@ namespace AntiLogoffConsoleApp
                         IntPtr handleForKeystrokes = GetForegroundWindow();
                         if (GameProcess.MainWindowHandle == handleForKeystrokes)
                         {
-                            keystrokesSentToSC = true;
+                            keystrokesSentToTheGame = true;
                             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - Activity detected within Freelancer");
                         }
-                        else if (keystrokesSentToSC == null)
+                        else if (keystrokesSentToTheGame == null)
                         {
-                            keystrokesSentToSC = false;
+                            keystrokesSentToTheGame = false;
                         }
                     }
 
@@ -155,15 +155,15 @@ namespace AntiLogoffConsoleApp
                     Thread.Sleep(10);
                 }
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - LastKey: {keystroke}, Sent to SC: {keystrokesSentToSC}");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - LastKey: {keystroke}, Sent to SC: {keystrokesSentToTheGame}");
 
-                if (keystrokesSentToSC != true)
+                if (keystrokesSentToTheGame != true)
                 {
-                    keystrokesSentToSC = false;
+                    keystrokesSentToTheGame = false;
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - No activity detected within the monitoring period");
                 }
 
-                if (GameIsRunning == true && keystrokesSentToSC != true)
+                if (GameIsRunning == true && keystrokesSentToTheGame != true)
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Starting AntiLogoff Procedure");
 
@@ -179,26 +179,23 @@ namespace AntiLogoffConsoleApp
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Focusing The game");
                         SetForegroundWindow(GameProcess.MainWindowHandle);
                         ShowWindow(GameProcess.MainWindowHandle, 3);
-                        Thread.Sleep(500);
+                        Thread.Sleep(100);
                     }
 
-                    // Send keystrokes to the game
-                    var randomDelay = new Random().Next(30, 60);
-                    Thread.Sleep(300 + randomDelay);
-                    if (!disableSounds) Console.Beep(659, 250);
-                    HoldKey(0x7B, 100); // Press F12
-                    Console.WriteLine("Pressed F12 in SC");
-                    Thread.Sleep(400 + randomDelay / 2);
-                    HoldKey(0x57, 10000); // Press W
-                    Thread.Sleep(400 + randomDelay / 2);
-                    HoldKey(0x7B, 100); // Press F12
-                    if (!disableSounds) Console.Beep(587, 250);
-                    Thread.Sleep(300 + randomDelay);
+                    ClickMouse("left", true); // left click
+                    ClickMouse("left", true); // left click
+                    ClickMouse("left", true); // left click
+                    ClickMouse("left", true); // left click
 
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Keystrokes sent to SC");
+                    ClickMouse("right", true); // right click
+                    ClickMouse("right", true); // right click
+                    ClickMouse("right", true); // right click
+                    ClickMouse("right", true); // right click
+
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Keystrokes sent to the game");
                 }
 
-                if (keystrokesSentToSC == true)
+                if (keystrokesSentToTheGame == true)
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Activity detected in the past {monitoringDuration} secs");
                 }
@@ -206,7 +203,7 @@ namespace AntiLogoffConsoleApp
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Freelancer is not running");
                 }
-                keystrokesSentToSC = false;
+                keystrokesSentToTheGame = false;
                 Thread.Sleep(1);
             }
         }
@@ -233,6 +230,72 @@ namespace AntiLogoffConsoleApp
             PressKey("W"); // Press W
         }
 
+        private static void HoldKeyArray(byte[] keys, int duration)
+        {
+            const int KEYEVENTF_EXTENDEDKEY = 0x0001;
+            const int KEYEVENTF_KEYUP = 0x0002;
+
+            foreach (var key in keys)
+            {
+                keybd_event(key, MapVirtualKey(key, 0), KEYEVENTF_EXTENDEDKEY, 0);
+            }
+
+            Thread.Sleep(duration);
+
+            foreach (var key in keys)
+            {
+                keybd_event(key, MapVirtualKey(key, 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+            }
+        }
+
+        private static void ClickMouse(string button, bool clickTopMiddle = false)
+        {
+            const int MOUSEEVENTF_LEFTDOWN = 0x02;
+            const int MOUSEEVENTF_LEFTUP = 0x04;
+            const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+            const int MOUSEEVENTF_RIGHTUP = 0x10;
+            const int MOUSEEVENTF_MIDDLEDOWN = 0x20;
+            const int MOUSEEVENTF_MIDDLEUP = 0x40;
+
+            if (clickTopMiddle)
+            {
+                // Get screen dimensions
+                int screenWidth = GetSystemMetrics(0);
+                int screenHeight = GetSystemMetrics(1);
+
+                // Set cursor position to top-middle of the screen
+                SetCursorPos(screenWidth / 2, 0);
+            }
+
+            switch (button.ToLower())
+            {
+                case "left":
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    Thread.Sleep(100);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    break;
+                case "right":
+                    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+                    Thread.Sleep(100);
+                    mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+                    break;
+                case "middle":
+                    mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+                    Thread.Sleep(100);
+                    mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+                    break;
+                default:
+                    Console.WriteLine("Invalid button specified.");
+                    break;
+            }
+        }
+
+[DllImport("user32.dll")]
+private static extern bool SetCursorPos(int x, int y);
+
+[DllImport("user32.dll")]
+private static extern int GetSystemMetrics(int nIndex);
+
         private static void PressKey(string key)
         {
             SendKeys.SendWait(key);
@@ -243,6 +306,9 @@ namespace AntiLogoffConsoleApp
 
         [DllImport("user32.dll")]
         private static extern byte MapVirtualKey(uint uCode, uint uMapType);
+
+        [DllImport("user32.dll")]
+        private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
         
     }
 
