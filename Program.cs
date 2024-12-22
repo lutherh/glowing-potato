@@ -65,7 +65,7 @@ namespace AntiLogoffConsoleApp
         {
             var monitoringDuration = 2;
             var minDelayLoop = 1;
-            var maxDelayLoop = 10;
+            var maxDelayLoop = 3;
 
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Anti-Logoff started with monitoring duration: {monitoringDuration} secs");
 
@@ -87,16 +87,18 @@ namespace AntiLogoffConsoleApp
                 var lastMousePosition = Mouse.Equals;
                 bool activityDetected = false;
 
+                String programName = "mspaint"; //"Freelancer";
+
                 while (DateTime.Now < endTime)
                 {
                     // Detect if the game is running
-                    GameProcess = Process.GetProcessesByName("Freelancer").FirstOrDefault();
+                    GameProcess = Process.GetProcessesByName(programName).FirstOrDefault();
                     if (GameProcess != null)
                     {
                         if (GameIsRunning != true)
                         {
                             // Trigger notification only once until game window is detected
-                            Console.WriteLine("Freelancer detected");
+                            Console.WriteLine(programName + " detected");
                         }
                         GameIsRunning = true;
                     }
@@ -105,7 +107,7 @@ namespace AntiLogoffConsoleApp
                         if (GameIsRunning != false)
                         {
                             // Trigger notification only once until game window is detected
-                            Console.WriteLine("Freelancer is not running");
+                            Console.WriteLine(programName + " is not running");
                         }
                         GameIsRunning = false;
                         continue; // Stop loop and start over
@@ -142,7 +144,7 @@ namespace AntiLogoffConsoleApp
                         if (GameProcess.MainWindowHandle == handleForKeystrokes)
                         {
                             keystrokesSentToTheGame = true;
-                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - Activity detected within Freelancer");
+                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] INFO - Activity detected within the application");
                         }
                         else if (keystrokesSentToTheGame == null)
                         {
@@ -182,15 +184,7 @@ namespace AntiLogoffConsoleApp
                         Thread.Sleep(100);
                     }
 
-                    ClickMouse("left", true); // left click
-                    ClickMouse("left", true); // left click
-                    ClickMouse("left", true); // left click
-                    ClickMouse("left", true); // left click
-
-                    ClickMouse("right", true); // right click
-                    ClickMouse("right", true); // right click
-                    ClickMouse("right", true); // right click
-                    ClickMouse("right", true); // right click
+                    ClickMouse("fly", true); // left click
 
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACTION - Keystrokes sent to the game");
                 }
@@ -201,7 +195,7 @@ namespace AntiLogoffConsoleApp
                 }
                 if (GameIsRunning != true)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Freelancer is not running");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LOOP - Applicaation you are trying to automate is not running");
                 }
                 keystrokesSentToTheGame = false;
                 Thread.Sleep(1);
@@ -248,7 +242,7 @@ namespace AntiLogoffConsoleApp
             }
         }
 
-        private static void ClickMouse(string button, bool clickTopMiddle = false)
+        private static void ClickMouse(string button, bool clickTopMiddle)
         {
             const int MOUSEEVENTF_LEFTDOWN = 0x02;
             const int MOUSEEVENTF_LEFTUP = 0x04;
@@ -257,15 +251,21 @@ namespace AntiLogoffConsoleApp
             const int MOUSEEVENTF_MIDDLEDOWN = 0x20;
             const int MOUSEEVENTF_MIDDLEUP = 0x40;
 
+
+            // Get screen dimensions
+            int screenWidth = GetSystemMetrics(0);
+            int screenHeight = GetSystemMetrics(1);
+
             if (clickTopMiddle)
             {
-                // Get screen dimensions
-                int screenWidth = GetSystemMetrics(0);
-                int screenHeight = GetSystemMetrics(1);
-
                 // Set cursor position to top-middle of the screen
                 SetCursorPos(screenWidth / 2, 0);
             }
+
+            int curserPositionXMiddle = screenWidth / 2;
+            int curserPositionYMiddle = screenHeight / 2;
+
+            SetCursorPos(curserPositionXMiddle, curserPositionYMiddle);
 
             switch (button.ToLower())
             {
@@ -284,13 +284,18 @@ namespace AntiLogoffConsoleApp
                     Thread.Sleep(100);
                     mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
                     break;
+                case "fly":
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    Thread.Sleep(100);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    break;
                 default:
                     Console.WriteLine("Invalid button specified.");
                     break;
             }
         }
 
-[DllImport("user32.dll")]
+[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
 private static extern bool SetCursorPos(int x, int y);
 
 [DllImport("user32.dll")]
@@ -307,7 +312,7 @@ private static extern int GetSystemMetrics(int nIndex);
         [DllImport("user32.dll")]
         private static extern byte MapVirtualKey(uint uCode, uint uMapType);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
         
     }
